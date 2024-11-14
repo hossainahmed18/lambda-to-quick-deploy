@@ -66,6 +66,33 @@ resource "aws_iam_role_policy_attachment" "lambda_to_quick_deploy_policy_attachm
   policy_arn = aws_iam_policy.lambda_to_quick_deploy_policy_cwLogs.arn
 }
 
+#extra added
+data "aws_iam_policy_document" "lambda_to_quick_deploy_policy_document_cloudfront" {
+  provider = aws.iam
+  version  = "2012-10-17"
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "cloudfront:ListCachePolicies",
+    ]
+    resources = ["arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:cache-policy/*"]
+  }
+}
+resource "aws_iam_policy" "lambda_to_quick_deploy_policy_cloudfront" {
+  provider = aws.iam
+  name     = "${local.lambda_to_quick_deploy_name}_lambda_policy_cloudfront"
+  policy   = data.aws_iam_policy_document.lambda_to_quick_deploy_policy_document_cloudfront.json
+}
+resource "aws_iam_role_policy_attachment" "lambda_to_quick_deploy_policy_attachment_cloudfront" {
+  provider   = aws.iam
+  role       = aws_iam_role.lambda_to_quick_deploy_role.name
+  policy_arn = aws_iam_policy.lambda_to_quick_deploy_policy_cloudfront.arn
+}
+
+#extra added
+
 resource "aws_lambda_function_url" "lambda_to_quick_deploy_url" {
   function_name      = aws_lambda_function.lambda_to_quick_deploy.function_name
   authorization_type = "NONE"
